@@ -1,0 +1,102 @@
+% Increasing depending on type
+% Condition of problem and basis of application 4
+% 4 Meromorphic fct in the unit disk from boundary and interior values
+% f(z) = 100.*sec(beta.*x).*csc(beta.*x), beta = 4,16 
+
+clear all
+
+
+
+M1 = 501; % # sample points on unit sphere, paper 1000
+M2 = 3000; % # sample points in unit disk, paper 3000
+M = M1 + M2; % # sample points
+
+beta = 4; % beta = 4,16 -> 5 and 21 poles
+fun = @(x) (100).*sec(beta.*x).*csc(beta.*x); 
+tol = 1e-14; % 1e-13/1e-14
+
+% Grid for Lambda
+G1 = disk_grid(100,1,[0,0],1); % equispaced points in complex unit disk
+G = G1(1,:) + 1i*G1(2,:);      % "
+
+% Sample points
+Z1 = equisphere(0,0,1,M1); % M1 points in unit sphere
+Z2 = randdisk(0,0,1,M2); % M2 points in unit disk
+Z = [Z1; Z2]; % sample points 
+
+
+
+
+LambdaAll = [];
+LambdaCAll = [];
+LambdaCAllVF = [];
+for m = 1:50 % type (m-1,m-1)
+
+[r,pol,res,zer,z,f,w,errvec] = aaa(fun(Z),Z,tol,m);
+
+numL = @(x) sum(abs(w)./abs(x-z)); % numerator of Lebesgue fct
+denomL = @(x) abs(sum(w./(x-z))); % denominator of Lebesgue fct
+Lambdaf = numL(G)./denomL(G); % Lebesgue fct on points G
+Lambda = max(Lambdaf); % "Lebesgue constant" 
+LambdaAll = [LambdaAll, Lambda];
+
+C = [];
+Zm = setdiff(Z,z);
+for k = 1:length(z) % Cauchy matrix AAA
+C = [C 1./(Zm-z(k))];
+end
+LambdaC = cond(C, 2);
+LambdaCAll = [LambdaCAll, LambdaC];
+
+
+% 'Vector fitting'
+CVF = [];
+ZmVF = setdiff(Z,pol);
+for k = 1:length(pol) % Cauchy matrix VF
+CVF = [CVF 1./(ZmVF-pol(k))];
+end
+LambdaCVF = cond(CVF, 2);
+LambdaCAllVF = [LambdaCAllVF, LambdaCVF];
+end
+
+
+figure 
+plot(LambdaAll,'o-','Color',[1 0 0])
+hold on
+leg{1} = 'Condition of Problem';
+title_string = strcat(['Meromorphic fct in the unit disk from boundary and int values, $f(z) = 100\sec($' num2str(beta) '$z)\csc($' num2str(beta) '$z)$']);
+title(title_string,'Interpreter','LaTex','FontSize',20);
+legend(leg,'Interpreter','LaTex','FontSize',20,'Location','EastOutside');
+set(gca,'FontSize',20);
+xlabel('$m$','Interpreter','Latex')
+ylabel('Condition number $\Lambda^{(m)}$','Interpreter','Latex')
+set(gca, 'YScale', 'log')
+grid on
+hold off
+
+figure 
+plot(LambdaCAll,'o-','Color',[0 0 1]) % AAA-App
+hold on
+leg{1} = 'Cauchy matrix AAA';
+title_string = strcat(['Meromorphic fct in the unit disk from boundary and int values, $f(z) = 100\sec($' num2str(beta) '$z)\csc($' num2str(beta) '$z)$']);
+title(title_string,'Interpreter','LaTex','FontSize',20);
+legend(leg,'Interpreter','LaTex','FontSize',20,'Location','EastOutside');
+set(gca,'FontSize',20);
+xlabel('$m$','Interpreter','Latex')
+ylabel('Condition number $\kappa_{AAA}$','Interpreter','Latex')
+grid on
+hold off
+
+figure
+plot(LambdaCAllVF,'o-','Color',[0 1 1]) % VF
+hold on
+leg{1} = 'Cauchy matrix VF';
+title_string = strcat(['Meromorphic fct in the unit disk from boundary and int  values, $f(z) = 100\sec($' num2str(beta) '$z)\csc($' num2str(beta) '$z)$']);
+title(title_string,'Interpreter','LaTex','FontSize',20);
+legend(leg,'Interpreter','LaTex','FontSize',20,'Location','EastOutside');
+set(gca,'FontSize',20);
+set(gca, 'YScale', 'log')
+xlabel('$m$','Interpreter','Latex')
+ylabel('Condition number $\kappa_{VF}$','Interpreter','Latex')
+grid on
+hold off
